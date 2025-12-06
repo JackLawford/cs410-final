@@ -3,7 +3,7 @@ USE school;
 
 CREATE TABLE class (
     class_id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    course_number INTEGER NOT NULL,
+    course_number VARCHAR(20) NOT NULL,
     term VARCHAR(50) NOT NULL,
     section_number INTEGER NOT NULL,
     description VARCHAR(500) NOT NULL
@@ -15,9 +15,14 @@ CREATE TABLE category (
 
 CREATE TABLE assignment(
     assignment_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    class_id INTEGER NOT NULL,
+    category_name VARCHAR(50) NOT NULL,
     name VARCHAR(50) NOT NULL,
     point_value INTEGER NOT NULL,
-    description VARCHAR(500) NOT NULL
+    description VARCHAR(500) NOT NULL,
+    FOREIGN KEY (class_id) REFERENCES class (class_id),
+    FOREIGN KEY (category_name) REFERENCES category (name),
+    UNIQUE (class_id, name)
 );
 
 CREATE TABLE student(
@@ -38,8 +43,8 @@ CREATE TABLE class_category(
 CREATE TABLE class_student(
     class_id INTEGER NOT NULL,
     student_id INTEGER NOT NULL,
-    grade INTEGER NOT NULL,
 
+    PRIMARY KEY (class_id, student_id),
     FOREIGN KEY (class_id) REFERENCES class (class_id),
     FOREIGN KEY (student_id) REFERENCES student (student_id)
 );
