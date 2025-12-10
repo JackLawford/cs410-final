@@ -90,5 +90,89 @@ public class Assignment {
      * @throws Exception
      */
     public static void cmdGrade(ShellContext ctx, String args) throws Exception {
+        String[] parts = args.split("\\s+", 3);
+        if (parts.length != 3) {
+            System.out.println("Usage: add-assignment ASSIGNMENTNAME USERNAME GRADE");
+            return;
+        }
+
+        String assignmentName = parts[0];
+        String username = parts[1];
+
+        int grade;
+        try {
+            grade = Integer.parseInt(parts[2]);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid point value: " + parts[3]);
+            return;
+        }
+
+        //Find student ID from student username
+        String sql =
+                "SELECT s.student_id " +
+                "FROM student s" +
+                "WHERE s.username = " + username;
+
+        int studentID;
+
+        Connection conn = ctx.getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            boolean any = false;
+            while (rs.next()) {
+                any = true;
+                studentID = rs.getInt("student_id");
+            }
+
+            if (!any) {
+                System.out.println("No students with username: " + username + " found.");
+            }
+        }
+
+        //Find assignment_id from assinment name
+        sql =
+            "SELECT a.assignment_id, " +
+            "       a.point_value " +
+            "FROM assignment a" +
+            "WHERE a.name = " + assignmentName;
+
+        int assignmentID;
+        int pointValue;
+
+        Connection conn = ctx.getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            boolean any = false;
+            while (rs.next()) {
+                any = true;
+                assignmentID = rs.getInt("assignment_id");
+                pointValue = rs.getInt("point_value")
+            }
+
+            if (!any) {
+                System.out.println("No assignments with name: " + assignmentName + " found.");
+            }
+        }
+
+        sql = "INSERT INTO assignment_student (assignment_id, student_id, grade) " +
+                "VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE grade = " + grade;
+
+        Connection conn = ctx.getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, assignmentID);
+            ps.setString(2, studentID);
+            ps.setString(3, grade);
+            ps.executeUpdate();
+        }
+
+        System.out.println("Added assignment " + name + " " +  category + " " + points + " " + description);
+
+        //Let user know if the grade entered exceeds the points configured for the assignment
+        if (grade > pointValue) {
+            System.out.println("WARNING: The grade you gave this assignment is greater than the points" +
+                    " configured for the assignment: " + grade + "/" + pointValue);
+        }
     }
 }
